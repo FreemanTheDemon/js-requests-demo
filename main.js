@@ -12,7 +12,7 @@ const newAgeInput = document.querySelector('#age')
 const newLikesText = document.querySelector('textarea')
 const charContainer = document.querySelector('section')
 
-// const baseURL = 
+const baseURL = 'http://localhost:4000';
 
 function createCharacterCard(char) {
   let charCard = document.createElement('div')
@@ -31,3 +31,80 @@ function createCharacterCard(char) {
 function clearCharacters() {
   charContainer.innerHTML = ``
 }
+
+const getAllCharacters = () => {
+  clearCharacters();
+
+  axios.get(baseURL + '/characters')
+    .then((res) => {
+      for (let i = 0; i < res.data.length; i++) {
+        createCharacterCard(res.data[i]);
+      }
+    })
+    .catch(err => console.log(err))
+}
+
+const getOneCharacter = event => {
+  clearCharacters();
+
+  axios.get(`${baseURL}/character/${event.target.id}`)
+    .then((res) => {
+      createCharacterCard(res.data);
+    })
+}
+
+for (let i = 0; i < charBtns.length; i++) {
+  charBtns[i].addEventListener('click', getOneCharacter);
+}
+
+getAllBtn.addEventListener('click', getAllCharacters);
+
+const getOldCharacters = event => {
+  event.preventDefault();
+  clearCharacters();
+
+  axios.get(`${baseURL}/character/?age=${ageInput.value}`)
+    .then((res) => {
+      for (let i = 0; i < res.data.length; i++) {
+        createCharacterCard(res.data[i]);
+      }
+    })
+    .catch(err => console.log(err))
+
+  ageInput.value = '';
+}
+
+ageForm.addEventListener('submit', getOldCharacters);
+
+const createNewChar = event => {
+  event.preventDefault();
+
+  clearCharacters();
+
+  let newLikes = [...newLikesText.value.split(',')];
+
+  let body = {
+    firstName: newFirstInput.value,
+    lastName: newLastInput.value,
+    gender: newGenderDropDown.value,
+    age: newAgeInput.value,
+    likes: newLikes
+  };
+
+  axios.post(`${baseURL}/character/`, body)
+    .then((res) => {
+      for (let i = 0; i < res.data.length; i++) {
+        createCharacterCard(res.data[i]);
+      }
+    })
+
+    newFirstInput.value = '';
+    newLastInput.value = '';
+    newGenderDropDown.value = 'female';
+    newLikesText.value = '';
+    newAgeInput.value = '';
+}
+
+createForm.addEventListener('submit', createNewChar);
+
+getAllCharacters();
